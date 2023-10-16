@@ -20,8 +20,8 @@ class AppClass extends Component {
   }
 
   getXY() {
-    const x = Math.floor(this.state.index / 3);
-    const y = this.state.index % 3;
+    const x = Math.floor(this.state.index / 3 + 1);
+    const y = this.state.index % 3 + 1;
     return { x, y };
   }
 
@@ -114,7 +114,7 @@ class AppClass extends Component {
       .catch((error) => {
         console.error(error);
         this.setState({
-          message: 'An error occurred.',
+          message: "Unprocessable Entity",
         });
       });
   }

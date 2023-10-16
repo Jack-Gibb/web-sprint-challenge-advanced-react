@@ -15,8 +15,8 @@ export default function AppFunctionality(props) {
   });
 
   function getXY() {
-    const x = Math.floor(state.index / 3);
-    const y = state.index % 3;
+    const x = Math.floor(state.index / 3 + 1);
+    const y = state.index % 3 + 1 ;
     return { x, y };
   }
 
@@ -100,7 +100,7 @@ export default function AppFunctionality(props) {
         console.error(error);
         setState((prevState) => ({
           ...prevState,
-          message: 'An error occurred',
+          message: "Unprocessable Entity",
         }));
       });
   }

@@ -1,99 +1,168 @@
 import React, { Component } from 'react';
+import axios from 'axios';
 
 class AppClass extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      activeSquare: 4,
-      coordinates: { x: 2, y: 2 },
-      limitReachedMessage: '',
-      steps: 0,
-      email: '',
       message: '',
+      email: '',
+      index: 4,
+      steps: 0,
+      x: 1,  // Initialize x and y to 1
+      y: 2,
     };
   }
 
-  handleMove = (direction) => {
-    const { coordinates, steps } = this.state;
-    const { x, y } = coordinates;
+  isEmailValid(email) {
+    const emailPattern = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+    return emailPattern.test(email);
+  }
 
-    if (direction === 'up' && y > 1) {
-      this.setState({
-        coordinates: { x, y: y - 1 },
-        steps: steps + 1,
-      });
-    } else if (direction === 'down' && y < 3) {
-      this.setState({
-        coordinates: { x, y: y + 1 },
-        steps: steps + 1,
-      });
-    } else if (direction === 'left' && x > 1) {
-      this.setState({
-        coordinates: { x: x - 1, y },
-        steps: steps + 1,
-      });
-    } else if (direction === 'right' && x < 3) {
-      this.setState({
-        coordinates: { x: x + 1, y },
-        steps: steps + 1,
-      });
-    } else {
-      this.setState({ limitReachedMessage: `You can't go ${direction}` });
-    }
-  };
+  getXY() {
+    const x = Math.floor(this.state.index / 3);
+    const y = this.state.index % 3;
+    return { x, y };
+  }
 
-  handleReset = () => {
+  getXYMessage() {
+    const { x, y } = this.getXY();
+    return `Coordinates (${x}, ${y})`;
+  }
+
+  reset() {
     this.setState({
-      activeSquare: 4,
-      coordinates: { x: 2, y: 2 },
-      limitReachedMessage: '',
-      steps: 0,
-      email: '',
       message: '',
+      email: '',
+      index: 4,
+      steps: 0,
+      x: 1,
+      y: 2,
     });
-  };
+  }
 
-  handleSubmit = async () => {
-    const { email } = this.state;
+  getNextIndex(direction) {
+    const currentIndex = this.state.index;
+    let nextIndex;
 
-    if (!email) {
-      this.setState({ message: 'Ouch: email is required' });
-    } else if (!this.validateEmail(email)) {
-      this.setState({ message: 'Ouch: email must be a valid email' });
-    } else if (email === 'foo@bar.baz') {
-      this.setState({ message: 'foo@bar.baz failure #71' });
-    } else {
-      // Perform the submission logic here and handle success messages.
+    switch (direction) {
+      case 'left':
+        nextIndex = currentIndex - 1;
+        break;
+      case 'up':
+        nextIndex = currentIndex - 3;
+        break;
+      case 'right':
+        nextIndex = currentIndex + 1;
+        break;
+      case 'down':
+        nextIndex = currentIndex + 3;
+        break;
+      default:
+        nextIndex = currentIndex;
     }
-  };
 
-  validateEmail = (email) => {
-    // Implement a basic email validation function here.
-    // You can use a regular expression or a library like validator.js.
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
+    if (nextIndex < 0) nextIndex = 0;
+    if (nextIndex > 8) nextIndex = 8;
+
+    return nextIndex;
+  }
+
+  move(evt) {
+    const direction = evt.target.id;
+    const nextIndex = this.getNextIndex(direction);
+
+    this.setState((prevState) => ({
+      index: nextIndex,
+      steps: prevState.steps + 1,
+    }));
+  }
+
+  onChange(evt) {
+    const { id, value } = evt.target;
+    this.setState((prevState) => ({
+      ...prevState,
+      [id]: value,
+    }));
+  }
+
+  onSubmit(evt) {
+    evt.preventDefault();
+    const { email, x, y, steps } = this.state;
+
+    if (!this.isEmailValid(email) || x < 1 || x > 3 || y < 1 || y > 3 || steps <= 0) {
+      this.setState({
+        message: 'Invalid payload shape',
+      });
+      return;
+    }
+
+    const data = {
+      x,
+      y,
+      steps,
+      email,
+    };
+
+    axios
+      .post('http://localhost:9000/api/result', data)
+      .then((response) => {
+        this.setState({
+          message: response.data.message,
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+        this.setState({
+          message: 'An error occurred.',
+        });
+      });
+  }
 
   render() {
-    const { coordinates, limitReachedMessage, steps, email, message } = this.state;
-
     return (
-      <div>
-        {/* Render the grid and form elements based on the requirements */}
-        <div className="square">B</div>
-        {/* Implement the rest of the grid squares */}
-        <div id="coordinates">({coordinates.x},{coordinates.y})</div>
-        <div id="steps">You moved {steps} times</div>
-        <input
-          type="text"
-          id="email"
-          value={email}
-          onChange={(e) => this.setState({ email: e.target.value })}
-        />
-        <div id="message">{message}</div>
-        <button id="up" onClick={() => this.handleMove('up')}>Up</button>
-        {/* Implement buttons for other directions (down, left, right) */}
-        <button id="reset" onClick={this.handleReset}>Reset</button>
-        <button id="submit" onClick={this.handleSubmit}>Submit</button>
+      <div id="wrapper" className={this.props.className}>
+        <div className="info">
+          <h3 id="coordinates">{this.getXYMessage()}</h3>
+          <h3 id="steps">You moved {this.state.steps} times</h3>
+        </div>
+        <div id="grid">
+          {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((idx) => (
+            <div key={idx} className={`square${idx === this.state.index ? ' active' : ''}`}>
+              {idx === this.state.index ? 'B' : null}
+            </div>
+          ))}
+        </div>
+        <div className="info">
+          <h3 id="message">{this.state.message}</h3>
+        </div>
+        <div id="keypad">
+          <button id="left" onClick={(evt) => this.move(evt)}>
+            LEFT
+          </button>
+          <button id="up" onClick={(evt) => this.move(evt)}>
+            UP
+          </button>
+          <button id="right" onClick={(evt) => this.move(evt)}>
+            RIGHT
+          </button>
+          <button id="down" onClick={(evt) => this.move(evt)}>
+            DOWN
+          </button>
+          <button id="reset" onClick={() => this.reset()}>
+            Reset
+          </button>
+        </div>
+        <form onSubmit={(evt) => this.onSubmit(evt)}>
+          <input
+            id="email"
+            type="email"
+            placeholder="Type email"
+            value={this.state.email}
+            onChange={(evt) => this.onChange(evt)}
+          />
+          <input id="submit" type="submit" value="Submit" />
+        </form>
       </div>
     );
   }

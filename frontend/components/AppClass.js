@@ -14,31 +14,27 @@ class AppClass extends Component {
   }
 
   handleMove = (direction) => {
-    const { coordinates, steps, activeSquare } = this.state;
+    const { coordinates, steps } = this.state;
     const { x, y } = coordinates;
 
     if (direction === 'up' && y > 1) {
       this.setState({
         coordinates: { x, y: y - 1 },
-        activeSquare: activeSquare - 3,
         steps: steps + 1,
       });
     } else if (direction === 'down' && y < 3) {
       this.setState({
         coordinates: { x, y: y + 1 },
-        activeSquare: activeSquare + 3,
         steps: steps + 1,
       });
     } else if (direction === 'left' && x > 1) {
       this.setState({
         coordinates: { x: x - 1, y },
-        activeSquare: activeSquare - 1,
         steps: steps + 1,
       });
     } else if (direction === 'right' && x < 3) {
       this.setState({
         coordinates: { x: x + 1, y },
-        activeSquare: activeSquare + 1,
         steps: steps + 1,
       });
     } else {
@@ -78,15 +74,29 @@ class AppClass extends Component {
   };
 
   render() {
-    const { coordinates, limitReachedMessage, steps, email, message, activeSquare } = this.state;
+    const { coordinates, limitReachedMessage, steps, email, message } = this.state;
 
     return (
       <div>
-        <div className="grid">
-          {Array.from({ length: 9 }, (_, i) => (
-            <div key={i} className={`square ${activeSquare === i ? 'active' : ''}`}>
-              {activeSquare === i ? 'B' : ''}
-            </div>
-          )}
-        </div>
-        <div id="coordinates
+        {/* Render the grid and form elements based on the requirements */}
+        <div className="square">B</div>
+        {/* Implement the rest of the grid squares */}
+        <div id="coordinates">({coordinates.x},{coordinates.y})</div>
+        <div id="steps">You moved {steps} times</div>
+        <input
+          type="text"
+          id="email"
+          value={email}
+          onChange={(e) => this.setState({ email: e.target.value })}
+        />
+        <div id="message">{message}</div>
+        <button id="up" onClick={() => this.handleMove('up')}>Up</button>
+        {/* Implement buttons for other directions (down, left, right) */}
+        <button id="reset" onClick={this.handleReset}>Reset</button>
+        <button id="submit" onClick={this.handleSubmit}>Submit</button>
+      </div>
+    );
+  }
+}
+
+export default AppClass;

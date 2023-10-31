@@ -15,8 +15,8 @@ export default function AppFunctionality(props) {
   });
 
   function getXY() {
-    const x = Math.floor(state.index / 3 + 1);
-    const y = state.index % 3 + 1 ;
+    const y = Math.floor(state.index / 3 + 1);
+    const x = state.index % 3 + 1 ;
     return { x, y };
   }
 
@@ -55,8 +55,8 @@ export default function AppFunctionality(props) {
         nextIndex = currentIndex;
     }
 
-    if (nextIndex < 0) nextIndex = 0;
-    if (nextIndex > 8) nextIndex = 8;
+    if (nextIndex < 0) nextIndex = currentIndex;
+    if (nextIndex > 8) nextIndex = currentIndex;
 
     return nextIndex;
   }
@@ -64,6 +64,10 @@ export default function AppFunctionality(props) {
   function move(evt) {
     const direction = evt.target.id;
     const nextIndex = getNextIndex(direction);
+
+    if (nextIndex === state.index) {
+      return;
+    }
 
     setState((prevState) => ({
       index: nextIndex,
@@ -94,13 +98,15 @@ export default function AppFunctionality(props) {
         setState((prevState) => ({
           ...prevState,
           message: response.data.message,
+          email: "",
         }));
       })
       .catch((error) => {
-        console.error(error);
+    //    console.error(error);
         setState((prevState) => ({
           ...prevState,
-          message: "Unprocessable Entity",
+          message: error.response.data.message,
+          email: "",
         }));
       });
   }

@@ -37,27 +37,34 @@ export default function AppFunctionality(props) {
   function getNextIndex(direction) {
     const currentIndex = state.index;
     let nextIndex;
+    let message = '';
 
     switch (direction) {
       case 'left':
-        nextIndex = currentIndex - 1;
+        nextIndex = currentIndex % 3 === 0 ? currentIndex : currentIndex - 1;
         break;
       case 'up':
-        nextIndex = currentIndex - 3;
+        nextIndex = currentIndex < 3 ? currentIndex : currentIndex - 3;
         break;
       case 'right':
-        nextIndex = currentIndex + 1;
+        nextIndex = currentIndex % 3 === 2 ? currentIndex : currentIndex + 1;
         break;
       case 'down':
-        nextIndex = currentIndex + 3;
+        nextIndex = currentIndex > 5 ? currentIndex : currentIndex + 3;
         break;
       default:
         nextIndex = currentIndex;
     }
-
-    if (nextIndex < 0) nextIndex = currentIndex;
-    if (nextIndex > 8) nextIndex = currentIndex;
-
+    if (nextIndex === currentIndex) {
+      message = `You can't go ${direction}`;
+    }
+    setState((prevState) => ({
+      ...prevState,
+      message: message, // Update the message
+      index: nextIndex,
+    }));
+  
+    
     return nextIndex;
   }
 
@@ -115,7 +122,8 @@ export default function AppFunctionality(props) {
     <div id="wrapper" className={props.className}>
       <div className="info">
         <h3 id="coordinates">{getXYMessage()}</h3>
-        <h3 id="steps">You moved {state.steps} times</h3>
+        <h3 id="steps">You moved {state.steps} 
+        {state.steps === 1 ? ' time': ' times'}</h3>
       </div>
       <div id="grid">
         {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((idx) => (
